@@ -1,0 +1,89 @@
+﻿@model CPU_Monitor.Models.CpuLogViewModel
+
+@{
+    ViewData["Title"] = "CPU Logging";
+}
+
+@if (Model.IsRunning)
+{
+    <div class="alert alert-success" role="alert">
+        CPU Logging is running
+    </div>
+}
+else
+{
+    <div class="alert alert-danger" role="alert">
+        CPU Logging is not running
+    </div>
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb ms-0 mb-1">
+        <li class="breadcrumb-item">Administration</li>
+        <li class="breadcrumb-item active">CPU Logging</li>
+    </ol>
+</nav>
+
+<div class="card mb-2">
+    <div class="card-header p-0">
+        <ul class="nav col-12">
+            @if (Model.IsRunning)
+            {
+                <li>
+                    <a asp-action="Stop" class="nav-link text-dark d-flex flex-column align-items-center" data-bs-toggle="tooltip"
+                       data-bs-placement="bottom" title="Stop Logging">
+                        <i class="bi bi-stop-circle fs-5"></i>
+                    </a>
+                </li>
+            }
+            else
+            {
+                <li>
+                    <a asp-action="Start" class="nav-link text-dark d-flex flex-column align-items-center" data-bs-toggle="tooltip"
+                       data-bs-placement="bottom" title="Start Logging">
+                        <i class="bi bi-play-circle fs-5"></i>
+                    </a>
+                </li>
+            }
+        </ul>
+    </div>
+</div>
+
+<div class="card my-2">
+    <div class="card-header">
+        <h5>
+            Today's Logs
+        </h5>
+    </div>
+
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>
+                        @Html.DisplayNameFor(model => Model.Logs.First().Time)
+                    </th>
+
+                    <th>
+                        @Html.DisplayNameFor(model => Model.Logs.First().CpuPercentage)
+                    </th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach(var item in Model.Logs)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelitem => item.Time)
+                        </td>
+
+                        <td>
+                            @Html.DisplayFor(modelitem => item.CpuPercentage)
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
