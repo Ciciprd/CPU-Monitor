@@ -52,6 +52,31 @@ else
 <div class="card my-2">
     <div class="card-header">
         <h5>
+            Pager
+        </h5>
+    </div>
+
+    <div class="card-body">
+        <div class="btn-group" role="group" aria-label="Pager">
+            @if (Model.Pager.HasPreviousPage)
+            {
+                var prev = Model.Pager.CurrentPage - 1;
+                
+                <a asp-action="Index" asp-route-currentPage="@prev" type="button" class="btn btn-outline-primary">Previous</a>
+            }
+            @if (Model.Pager.HasNextPage)
+            {
+                var next = Model.Pager.CurrentPage + 1;
+
+                <a asp-action="Index" asp-route-currentPage="@next" type="button" class="btn btn-outline-primary">Next</a>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="card my-2">
+    <div class="card-header">
+        <h5>
             Today's Logs
         </h5>
     </div>

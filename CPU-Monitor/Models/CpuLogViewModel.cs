@@ -14,4 +14,9 @@ public class CpuLogViewModel
     /// Indicates whether the logging service is currently running.
     /// </summary>
     public bool IsRunning { get; set; }
+
+    /// <summary>
+    /// Gets the pagination information used to navigate through the CPU log entries.
+    /// </summary>
+    public PagerViewModel Pager { get; init; } = null!;
 }

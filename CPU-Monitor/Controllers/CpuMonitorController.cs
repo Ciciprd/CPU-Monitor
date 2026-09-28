@@ -29,26 +29,42 @@ public class CpuMonitorController(CpuMonitoringService service, ILogger<CpuMonit
           ?? throw new InvalidOperationException("Metrics:DirectoryPath is not configured.");
 
     /// <summary>
-    /// Displays CPU logs with filtering, sorting and pagination.
+    /// Displays the CPU logs for the current day with pagination.
     /// </summary>
-    /// <param name="filters">Dynamic filters applied to the data.</param>
-    /// <param name="pg">Current page number.</param>
-    /// <param name="pageSize">Number of records per page.</param>
-    /// <param name="currentSortOrder">Sorting expression.</param>
-    /// <returns>View with filtered CPU logs.</returns>
-     public async Task<IActionResult> Index()
-     {
-         // Load logs for the current day
-         var logs = await LoadLogsAsync(DateTime.Today);
+    /// <param name="currentPage">The page number to display. Defaults to the first page.</param>
+    /// <param name="pageSize">The maximum number of log records displayed per page. Defaults to 50.</param>
+    /// <returns>A view containing the paginated CPU logs.</returns>
+    public async Task<IActionResult> Index(int currentPage = 1, int pageSize = 50)
+    {
+        // Load logs for the current day
+        var logs = await LoadLogsAsync(DateTime.Today);
 
-         var model = new CpuLogViewModel
-         {
-             Logs = logs,
-             IsRunning = _service.IsRunning
-         };
+        var totalItems = logs.Count;
 
-         return View(model);
-     }
+        currentPage = Math.Max(1, currentPage);
+        pageSize = Math.Clamp(pageSize, 1, 500);
+
+        logs.Reverse();
+
+        logs = logs
+            .Skip((currentPage - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        var model = new CpuLogViewModel
+        {
+            Logs = logs,
+            IsRunning = _service.IsRunning,
+            Pager = new PagerViewModel
+            {
+                CurrentPage = currentPage,
+                PageSize = pageSize,
+                TotalItems = totalItems
+            }
+        };
+
+        return View(model);
+    }
 
     /// <summary>
     /// Starts CPU logging.
@@ -112,7 +128,7 @@ public class CpuMonitorController(CpuMonitoringService service, ILogger<CpuMonit
         {
             _logger.LogError(ex, "Failed to read CPU log file: {FilePath}", logFile);
         }
-        
+
         return result;
     }
 
@@ -121,25 +137,25 @@ public class CpuMonitorController(CpuMonitoringService service, ILogger<CpuMonit
     /// </summary>
     /// <param name="line">Raw log line in format: HH:mm:ss;CPU%</param>
     /// <returns>Parsed log or <c>null</c> if invalid.</returns>
-    private static CpuLog? ParseLine(string line)
+    private CpuLog? ParseLine(string line)
     {
         var values = line.Split(';');
 
         if (values.Length != 2)
         {
-            //_logger.LogWarning("Invalid CPU log format: {Line}", line);
+            _logger.LogWarning("Invalid CPU log format: {Line}", line);
             return null;
         }
 
         if (!TimeOnly.TryParse(values[0], out var time))
         {
-            //_logger.LogWarning("Invalid time value in CPU log: {Line}", line);
+            _logger.LogWarning("Invalid time value in CPU log: {Line}", line);
             return null;
         }
 
         if (!double.TryParse(values[1], CultureInfo.InvariantCulture, out var cpu))
         {
-            //_logger.LogWarning("Invalid CPU value in log: {Line}", line);
+            _logger.LogWarning("Invalid CPU value in log: {Line}", line);
             return null;
         }
 
